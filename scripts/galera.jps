@@ -68,7 +68,7 @@ onInstall:
   - setupSeeds
   - setupInstance:
       id: "sqldb"
-  - cmd[${nodes.sqldb.master.id}]: "/etc/init.d/mysql stop; sleep 5; galera_new_cluster; service httpd restart"
+  - cmd[${nodes.sqldb.master.id}]: "jem service stop; sleep 5; pkill -9 mysql; galera_new_cluster; service httpd restart"
     user: root
   - forEach(n:nodes.sqldb):
       if (!${@n.ismaster}):
@@ -129,6 +129,6 @@ actions:
         [ -f /var/lib/mysql/grastate.dat ] && rm -f /var/lib/mysql/grastate.dat
         [ -f /var/lib/mysql/gvwstate.dat ] && rm -f /var/lib/mysql/gvwstate.dat
         [ -f /var/lib/mysql/galera.cache ] && rm -f /var/lib/mysql/galera.cache
-        /etc/init.d/mysql stop; pkill -9 mysql; /etc/init.d/mysql start
+        jem service stop; pkill -9 mysql; jem service start
       user: root
  
