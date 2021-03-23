@@ -68,7 +68,7 @@ onInstall:
   - setupSeeds
   - setupInstance:
       id: "sqldb"
-  - cmd[${nodes.sqldb.master.id}]: "jem service stop; sleep 5; pkill -9 mysql; pkill -9 mariadb; galera_new_cluster; service httpd restart"
+  - cmd[${nodes.sqldb.master.id}]: "jem service stop; sleep 3; pkill -9 mysql; pkill -9 mariadb; galera_new_cluster; sleep 3; jem service start;"
     user: root
   - forEach(n:nodes.sqldb):
       if (!${@n.ismaster}):
