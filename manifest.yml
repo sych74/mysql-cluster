@@ -96,6 +96,7 @@ nodes:
   cloudlets: 16
   fixedCloudlets: 1
   restartDelay: 30
+  tag: 10.4.13
   isRedeploySupport: true
   cluster:
     jps: "${baseUrl}/addons/auto-clustering/auto-cluster.jps"
