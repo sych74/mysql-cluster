@@ -75,8 +75,8 @@ onInstall:
       id: "sqldb"
       
   - cmd[sqldb]: |-
-        #yum install -y https://repo.percona.com/yum/percona-release-latest.noarch.rpm;
-        #yum install -y MariaDB-backup qpress socat;
+        yum install -y https://repo.percona.com/yum/percona-release-latest.noarch.rpm;
+        yum install -y MariaDB-backup qpress socat;
         mkdir /etc/systemd/system/{mysql,mariadb}.service.d
         echo -e "[Service]\nLimitNOFILE=524290" | tee /etc/systemd/system/{mysql,mariadb}.service.d/override.conf
         # Securing possible blocking issues with jelastic/mariadb:10.4.13 with next 3 lines
