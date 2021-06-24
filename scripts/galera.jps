@@ -85,8 +85,6 @@ onInstall:
         echo "/etc/init.d/mysql" >> /etc/jelastic/redeploy.conf
         wget -qP /var/lib/jelastic/customizations ${globals.PATH}/scripts/jahia_override.lib
         wget ${globals.PATH}/scripts/mysql -O /etc/init.d/mysql &>> /var/log/run.log
-      user: root
-
     user: root
 
   - resetCluster
