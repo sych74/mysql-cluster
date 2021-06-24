@@ -70,10 +70,7 @@ onBeforeRedeployContainer[sqldb]:
       message: Galera cluster successfully redeployed to ${event.params.tag} tag.
 
 onInstall:
-  - resetCluster
-  - initialSetup:
-      id: "sqldb"
-      
+
   - cmd[sqldb]: |-
         yum install -y https://repo.percona.com/yum/percona-release-latest.noarch.rpm;
         yum install -y MariaDB-backup qpress socat;
@@ -88,7 +85,10 @@ onInstall:
         echo "/etc/init.d/mysql" >> /etc/jelastic/redeploy.conf
         wget -qP /var/lib/jelastic/customizations ${globals.PATH}/scripts/jahia_override.lib
     user: root
-      
+
+  - resetCluster
+  - initialSetup:
+      id: "sqldb"      
   - setupSeeds
   - setupInstance:
       id: "sqldb"
