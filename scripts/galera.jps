@@ -92,7 +92,7 @@ onInstall:
   - setupSeeds
   - setupInstance:
       id: "sqldb"
-  - cmd[${nodes.sqldb.master.id}]: "/etc/init.d/mysql stop; sleep 5; galera_new_cluster; service httpd restart"
+  - cmd[${nodes.sqldb.master.id}]: "/etc/init.d/mysql stop; sleep 5; galera_new_cluster"
     user: root
   - env.file.AddFavorite:
     nodeGroup: sqldb
