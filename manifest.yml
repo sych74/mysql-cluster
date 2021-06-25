@@ -107,4 +107,6 @@ nodes:
     ON_ENV_INSTALL: "${baseUrl}/addons/auto-clustering/auto-cluster.jps"
     SCHEME: "${settings.scheme}"
     IS_PROXYSQL: "${settings.is_proxysql}"
+    ADMINPANEL_ENABLED: false
+    PHPMYADMIN_ENABLED: false
 success: You should receive a bunch of emails ;). There are credentials and endpoints.
