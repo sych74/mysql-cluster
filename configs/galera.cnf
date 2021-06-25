@@ -6,8 +6,6 @@ binlog_format = ROW
 default-storage-engine = innodb
 innodb_autoinc_lock_mode = 2
 
-innodb_force_primary_key = 1
-
 bind-address =
 report_host = 
 
@@ -19,7 +17,6 @@ wsrep_provider_options = "gcache.size=256M"
 # Galera Cluster Configuration
 wsrep_cluster_name = 
 wsrep_cluster_address = gcomm://
-wsrep-replicate-myisam = 1
 # wsrep_notify_cmd=/var/lib/jelastic/bin/wsrep-notify.sh
 
 # Galera Node Configuration
