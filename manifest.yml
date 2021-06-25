@@ -94,10 +94,8 @@ nodes:
   skipNodeEmails: true
   count: "${settings.nodes}"
   cloudlets: 40
-  fixedCloudlets: 1
-  restartDelay: 30
   tag: 10.4.13
-  isRedeploySupport: true
+  isSLBAccessEnabled: false
   cluster:
     jps: "${baseUrl}/addons/auto-clustering/auto-cluster.jps"
     validation:
