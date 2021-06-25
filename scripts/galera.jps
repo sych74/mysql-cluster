@@ -82,6 +82,7 @@ onInstall:
         mysql -e "set global key_buffer_size = 128*1024*1024; set global myisam_sort_buffer_size = 128*1024*1024; set global wsrep_sst_auth = 'mysql:'; set global wsrep_sst_method = 'mariabackup';"
         echo "/etc/init.d/mysql" >> /etc/jelastic/redeploy.conf
         wget -qP /var/lib/jelastic/customizations ${globals.PATH}/scripts/jahia_override.lib
+        chown -R mysql:mysql /var/lib/jelastic/customizations
         wget ${globals.PATH}/scripts/mysql -O /etc/init.d/mysql &>> /var/log/run.log
     user: root
 
