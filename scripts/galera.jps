@@ -20,7 +20,7 @@ globals:
 onBeforeScaleOut[sqldb]:
   - checkGaleraClusterSize
   - if (!${globals.galeraClusterSizeOk}):
-      stopEvent:
+    - stopEvent:
         type: warning
         message: "Galera cluster size is wrong. Aborting"
 
