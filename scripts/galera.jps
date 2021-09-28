@@ -17,6 +17,13 @@ globals:
   GALERA_CONF: /etc/mysql/conf.d/galera.cnf
   CUSTOM_CONF: ${settings.custom_conf}
 
+onBeforeScaleOut[sqldb]:
+  - checkGaleraClusterSize
+  - if (!${globals.galeraClusterSizeOk}):
+      stopEvent:
+        type: warning
+        message: "Galera cluster size is wrong. Aborting"
+
 onAfterScaleOut[sqldb]:
   - forEach(event.response.nodes):
       initialSetup:
@@ -168,14 +175,3 @@ actions:
     - else:
         setGlobals:
           galeraClusterSizeOk: False
-
-  redeployGalera:
-    - forEach(nodes.sqldb):
-        - log: "Redeploying MariaDB on node ${@i.id}..."
-        - cmd[${@i.id}]: sudo jem service stop
-        - api: environment.control.RedeployContainerById
-          nodeId: ${@i.id}
-          tag: ${this.targetDockerTag}
-          useExistingVolumes: true
-          skipReinstall: false
-          envName: ${env.envName}
