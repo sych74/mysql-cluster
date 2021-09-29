@@ -17,9 +17,9 @@ globals:
   GALERA_CONF: /etc/mysql/conf.d/galera.cnf
   CUSTOM_CONF: ${settings.custom_conf}
 
-onAfterAddNode[sqldb]: checkGaleraClusterSize
+onBeforeAddNode[sqldb]: checkGaleraClusterSize
 
-onAfterRemoveNode[sqldb]: checkGaleraClusterSize
+onBeforeRemoveNode[sqldb]: checkGaleraClusterSize
 
 onAfterScaleOut[sqldb]:
   - forEach(event.response.nodes):
@@ -173,7 +173,7 @@ actions:
 
   checkGaleraClusterSize:
     # Ensure the cluster size match the node count
-    - cmd[${nodes.sqldb.first.id}]: |-
+    - cmd[${nodes.sqldb.master.id}]: |-
         sleep 5;
         MYSQL_PWD=${globals.DB_PASS} mysql -u${globals.DB_USER} -Nse "show global status like 'wsrep_cluster_size';" | awk '{print $NF}'
     - if ("${response.out}" != "${nodes.sqldb.length}"):
