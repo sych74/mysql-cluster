@@ -22,7 +22,14 @@ onBeforeAddNode[sqldb]:
   - if (!${globals.galeraClusterSizeOk}):
     - stopEvent:
         type: warning
-        message: "Galera cluster size is wrong. Aborting"
+        message: Scaling is not possible since the Galera cluster is broken. Fix it first and try again.
+
+onBeforeRemoveNode[sqldb]:
+  - checkGaleraClusterSize
+  - if (!${globals.galeraClusterSizeOk}):
+    - stopEvent:
+        type: warning
+        message: "Scaling is not possible since the Galera cluster is broken. Fix it first and try again."
 
 onAfterScaleOut[sqldb]:
   - forEach(event.response.nodes):
@@ -63,15 +70,27 @@ onBeforeStop:
   - forEach(i:nodes.sqldb):
       env.control.StopNode [${@i.id}]
       
-onAfterStart:   
+onAfterStart:
   - if (nodes.proxy):
       cmd[proxy]: sudo service proxysql restart
+  - checkGaleraClusterSize
+  - if (!${globals.galeraClusterSizeOk}):
+    - return:
+        type: warning
+        message: Galera cluster is broken. Fix it.
 
 onBeforeRestartNode[sqldb]:
   - restartNodesInOrder
   - stopEvent:
       type: success
       message: Galera cluster successfully restarted
+
+onBeforeSetCloudletCount[sqldb]:
+  - checkGaleraClusterSize
+  - if (!${globals.galeraClusterSizeOk}):
+    - stopEvent:
+        type: warning
+        message: "Set cloudlets is not possible since the Galera cluster is broken. Fix it first and try again."
 
 onAfterSetCloudletCount[sqldb]:
   - forEach(i:nodes.sqldb):
