@@ -17,19 +17,9 @@ globals:
   GALERA_CONF: /etc/mysql/conf.d/galera.cnf
   CUSTOM_CONF: ${settings.custom_conf}
 
-onBeforeAddNode[sqldb]:
-  - checkGaleraClusterSize
-  - if (!${globals.galeraClusterSizeOk}):
-    - stopEvent:
-        type: warning
-        message: Scaling is not possible since the Galera cluster is broken. Fix it first and try again.
+onAfterAddNode[sqldb]: checkGaleraClusterSize
 
-onBeforeRemoveNode[sqldb]:
-  - checkGaleraClusterSize
-  - if (!${globals.galeraClusterSizeOk}):
-    - stopEvent:
-        type: warning
-        message: "Scaling is not possible since the Galera cluster is broken. Fix it first and try again."
+onAfterRemoveNode[sqldb]: checkGaleraClusterSize
 
 onAfterScaleOut[sqldb]:
   - forEach(event.response.nodes):
@@ -74,10 +64,6 @@ onAfterStart:
   - if (nodes.proxy):
       cmd[proxy]: sudo service proxysql restart
   - checkGaleraClusterSize
-  - if (!${globals.galeraClusterSizeOk}):
-    - return:
-        type: warning
-        message: Galera cluster is broken. Fix it.
 
 onBeforeRestartNode[sqldb]:
   - restartNodesInOrder
@@ -97,6 +83,7 @@ onAfterSetCloudletCount[sqldb]:
     - wsrepSlaveThreads:
         id: ${@i.id}
     - cmd [${@i.id}]: sudo jem service restart;
+  - checkGaleraClusterSize
 
 onInstall:
   - resetCluster
@@ -187,10 +174,9 @@ actions:
   checkGaleraClusterSize:
     # Ensure the cluster size match the node count
     - cmd[${nodes.sqldb.first.id}]: |-
+        sleep 5;
         MYSQL_PWD=${globals.DB_PASS} mysql -u${globals.DB_USER} -Nse "show global status like 'wsrep_cluster_size';" | awk '{print $NF}'
-    - if ("${response.out}" == "${nodes.sqldb.length}"):
-        setGlobals:
-          galeraClusterSizeOk: True
-    - else:
-        setGlobals:
-          galeraClusterSizeOk: False
+    - if ("${response.out}" != "${nodes.sqldb.length}"):
+        return:
+          type: warning
+          message: Galera cluster size is broken.
