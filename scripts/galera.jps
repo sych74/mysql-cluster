@@ -17,7 +17,7 @@ globals:
   GALERA_CONF: /etc/mysql/conf.d/galera.cnf
   CUSTOM_CONF: ${settings.custom_conf}
 
-onBeforeScaleOut[sqldb]:
+onBeforeAddNode[sqldb]:
   - checkGaleraClusterSize
   - if (!${globals.galeraClusterSizeOk}):
     - stopEvent:
