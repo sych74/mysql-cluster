@@ -30,6 +30,7 @@ onAfterClone:
       clone: true    
 
 onInstall:
+  - getReplicaUser
   - forEach(i:nodes.sqldb):
     - if (${@i.ismaster}):
         setupMaster: ${@i.id}
