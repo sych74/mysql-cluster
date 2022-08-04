@@ -61,4 +61,7 @@ actions:
     - setNodeDisplayName[${this}]: Secondary
     
   addSlave:
-    - cmd[${this.id}]: echo test-----------;
+    - cmd[${this}]: |-
+        curl --silent https://raw.githubusercontent.com/jelastic-jps/mysql-cluster/master/addons/recovery/scripts/db-recovery.sh > /tmp/db-recovery.sh; 
+        bash /tmp/db-recovery.sh --scenario restore_secondary_from_primary --donor-ip ${nodes.sqldb.master.address};
+      user: root
