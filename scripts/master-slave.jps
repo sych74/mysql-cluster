@@ -51,14 +51,14 @@ actions:
         sed -i "/auto-increment/d" /etc/mysql/conf.d/master.cnf
     - setupUsers:
         id: ${this}
-    - setNodeDisplayName[${this.id}]: Primary
+    - setNodeDisplayName[${this}]: Primary
 
   setupSlave:
     - cmd[${this}]: |-
         wget ${globals.PATH}/configs/slave.cnf -O /etc/mysql/conf.d/slave.cnf &>> /var/log/run.log
         sed -i "s/server-id.*/server-id = ${this}/" /etc/mysql/conf.d/slave.cnf
         sed -i "s/report_host.*/report_host = node${this}/" /etc/mysql/conf.d/slave.cnf
-    - setNodeDisplayName[${this.id}]: Secondary
+    - setNodeDisplayName[${this}]: Secondary
     
   addSlave:
     - cmd[${this.id}]: echo test-----------;
