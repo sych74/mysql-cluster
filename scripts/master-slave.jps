@@ -53,8 +53,9 @@ onInstall:
   - forEach(i:nodes.sqldb):
     - if (!${@i.ismaster}):
         addSlave: ${@i.id}
-  - return:
-      result: success
+  - if (!${settings.clone:false}):
+    - return:
+        result: success
 
 actions:
   setupMaster:
