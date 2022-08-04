@@ -32,6 +32,7 @@ onAfterMigrate:
     settings:
       path: ${globals.PATH}
       nodeGroup: ${settings.nodeGroup}
+      clone: true
 
 onAfterClone:
   - script: delete MANIFEST.id; return {result:0, jps:MANIFEST};
@@ -61,8 +62,9 @@ actions:
         sed -i "s/server-id.*/server-id = ${this}/" /etc/mysql/conf.d/master.cnf
         sed -i "s/report_host.*/report_host = node${this}/" /etc/mysql/conf.d/master.cnf
         sed -i "/auto-increment/d" /etc/mysql/conf.d/master.cnf
-    - setupUsers:
-        id: ${this}
+    - if (!${settings.clone:false}):
+      - setupUsers:
+          id: ${this}
     - setNodeDisplayName[${this}]: Primary
 
   setupSlave:
