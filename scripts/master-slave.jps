@@ -41,6 +41,7 @@ onAfterClone:
     settings:
       path: ${globals.PATH}
       nodeGroup: ${settings.nodeGroup}
+      clone: true
 
 onInstall:
   - getReplicaUser
