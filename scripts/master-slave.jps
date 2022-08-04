@@ -21,13 +21,25 @@ globals:
   DB_PASS: ${settings.db_pass}
   SCHEME: ${settings.scheme}
 
+onAfterScaleOut[sqldb]:
+  - forEach(event.response.nodes):
+    - setupSlave: ${@i.id}
+    - addSlave: ${@i.id}
+
+onAfterMigrate:
+  - script: delete MANIFEST.id; return {result:0, jps:MANIFEST};
+  - install: ${response.jps}
+    nodeGroup: sqldb
+    settings:
+      path: ${globals.PATH}
+
 onAfterClone:
   - script: delete MANIFEST.id; return {result:0, jps:MANIFEST};
   - install: ${response.jps}
-    envName: ${event.response.env.envName}    
-    settings: 
-      nodeGroup: ${settings.nodeGroup}      
-      clone: true    
+    envName: ${event.response.env.envName}
+    nodeGroup: sqldb
+    settings:
+      path: ${globals.PATH}
 
 onInstall:
   - getReplicaUser
