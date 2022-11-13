@@ -16,7 +16,6 @@ mixins:
   - /scripts/common.yml
 
 globals:
-  PATH: ${settings.path}
   DB_USER: ${settings.db_user}
   DB_PASS: ${settings.db_pass}
   SCHEME: ${settings.scheme}
@@ -30,7 +29,6 @@ onAfterMigrate:
   - script: delete MANIFEST.id; return {result:0, jps:MANIFEST};
   - install: ${response.jps}
     settings:
-      path: ${globals.PATH}
       nodeGroup: ${settings.nodeGroup}
       clone: true
 
@@ -39,7 +37,6 @@ onAfterClone:
   - install: ${response.jps}
     envName: ${event.response.env.envName}
     settings:
-      path: ${globals.PATH}
       nodeGroup: ${settings.nodeGroup}
       clone: true
 
@@ -76,7 +73,7 @@ actions:
     
   setupMaster:
     - cmd[${this.id}]: |-
-        wget ${globals.PATH}/configs/master.cnf -O /etc/mysql/conf.d/master.cnf &>> /var/log/run.log
+        wget ${baseUrl}/configs/master.cnf -O /etc/mysql/conf.d/master.cnf &>> /var/log/run.log
         sed -i "s/report_host.*/report_host = node${this.id}/" /etc/mysql/conf.d/master.cnf; 
         sed -i "s/server-id.*/server-id = ${this.id}/" /etc/mysql/conf.d/master.cnf;
         sed -i "s/auto-increment-offset.*/auto-increment-offset = ${this.increment}/" /etc/mysql/conf.d/master.cnf;
@@ -87,7 +84,7 @@ actions:
 
   setupSlave:
     - cmd[${this.id}]: |-
-        wget ${globals.PATH}/configs/slave.cnf -O /etc/mysql/conf.d/slave.cnf &>> /var/log/run.log;
+        wget ${baseUrl}/configs/slave.cnf -O /etc/mysql/conf.d/slave.cnf &>> /var/log/run.log;
         sed -i "s/server-id.*/server-id = ${this.id}/" /etc/mysql/conf.d/slave.cnf;
         sed -i "s/report_host.*/report_host = node${this.id}/" /etc/mysql/conf.d/slave.cnf;
         sed -i '/log-slave-updates/d' /etc/mysql/conf.d/slave.cnf;
