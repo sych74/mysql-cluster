@@ -45,6 +45,9 @@ onInstall:
   - getMasterNodes
   - setupMasters
   - addAllSlaves
+  - if (!${settings.clone:false}):
+    - return:
+        result: success
 
 actions:
 
