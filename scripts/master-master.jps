@@ -17,7 +17,7 @@ mixins:
 
 globals:
   DB_USER: ${settings.DB_USER:user-[fn.random]}
-  DB_PASS: ${settings.DB_PASS:[fn.password(10)]}
+  DB_PASS: ${settings.DB_PASS:[fn.password(20)]}
   SCHEME: ${settings.scheme}
 
 onAfterScaleOut[sqldb]:
