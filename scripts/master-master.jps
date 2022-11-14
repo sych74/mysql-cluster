@@ -44,7 +44,7 @@ onInstall:
   - getReplicaUser
   - getMasterNodes
   - setupMasters
-  - addSlaves
+  - addAllSlaves
 
 actions:
 
@@ -96,15 +96,18 @@ actions:
     - setupUsers:
         id: ${this.id}
     - setNodeDisplayName[${this.id}]: Secondary  
-  
-  addSlaves:
+
+  addSlave:
+    - setupSlave:
+        id: ${this}
+    - setupSecondaryReplication:
+        id: ${this}
+
+  addAllSlaves:
     - forEach(n:nodes.sqldb):
       - if (('${@n.id}' != '${globals.primary1_id}') && ('${@n.id}' != '${globals.primary2_id}')):
-        - setupSlave:
-            id: ${@n.id}
-        - setupSecondaryReplication:
-            id: ${@n.id}
-  
+          addSlave: ${@n.id}
+
   setupSecondaryReplication:
    - cmd[${this.id}]: |-
           curl --silent https://raw.githubusercontent.com/jelastic-jps/mysql-cluster/JE-63852/addons/recovery/scripts/db-recovery.sh > /tmp/db-recovery.sh;
