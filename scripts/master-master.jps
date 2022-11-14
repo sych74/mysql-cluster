@@ -16,7 +16,6 @@ mixins:
   - /scripts/common.yml
 
 globals:
-  PATH: ${settings.path}
   DB_USER: ${settings.db_user}
   DB_PASS: ${settings.db_pass}
   SCHEME: ${settings.scheme}
@@ -82,7 +81,12 @@ actions:
     - setupUsers:
         id: ${this.id}
     - setNodeDisplayName[${this.id}]: Primary
-
+    
+  setupPrimaryPrimaryReplication:
+    cmd[${globals.primary2_id}]: |-
+      curl --silent https://raw.githubusercontent.com/jelastic-jps/mysql-cluster/master/addons/recovery/scripts/db-recovery.sh > /tmp/db-recovery.sh;
+      bash /tmp/db-recovery.sh  --scenario restore_primary_from_primary --donor-ip ${globals.primary1_id}
+  
   setupSlave:
     - cmd[${this.id}]: |-
         wget ${baseUrl}/configs/slave.cnf -O /etc/mysql/conf.d/slave.cnf &>> /var/log/run.log;
@@ -91,36 +95,17 @@ actions:
         sed -i '/log-slave-updates/d' /etc/mysql/conf.d/slave.cnf;
     - setupUsers:
         id: ${this.id}
-    - setNodeDisplayName[${this.id}]: Secondary
-    
-  setupPrimaryPrimaryReplication:
-    cmd[${globals.primary2_id}]: |-
-      curl --silent https://raw.githubusercontent.com/jelastic-jps/mysql-cluster/master/addons/recovery/scripts/db-recovery.sh > /tmp/db-recovery.sh;
-      bash /tmp/db-recovery.sh  --scenario restore_primary_from_primary --donor-ip ${globals.primary1_id}
+    - setNodeDisplayName[${this.id}]: Secondary  
   
   addSlaves:
     - forEach(n:nodes.sqldb):
-        addNewSlave: ${@n.id}
-  
-  addNewSlave:
-    - if (('${this}' != '${globals.primary1_id}') && ('${this}' != '${globals.primary2_id}')):
+      - if (('${@n.id}' != '${globals.primary1_id}') && ('${this}' != '${globals.primary2_id}')):
         - setupSlave:
-            id: ${this}
+            id: ${@n.id}
         - setupSecondaryReplication:
-            id: ${this}
-
+            id: ${@n.id}
+  
   setupSecondaryReplication:
-    - cmd[${globals.primary1_id}]: mysql -u${globals.DB_USER} -p${globals.DB_PASS} -e 'show slave hosts;' | wc -l;
-    - setGlobals:
-        slavesCountPrimary1: ${response.out}
-    - cmd[${globals.primary2_id}]: mysql -u${globals.DB_USER} -p${globals.DB_PASS} -e 'show slave hosts;' | wc -l;
-    - setGlobals:
-        slavesCountPrimary2: ${response.out}
-    - if ( parseInt(${globals.slavesCountPrimary1}, 10) <= parseInt(${globals.slavesCountPrimary2}, 10)  ):
-        cmd[${this.id}]: |-
-          curl --silent https://raw.githubusercontent.com/jelastic-jps/mysql-cluster/master/addons/recovery/scripts/db-recovery.sh > /tmp/db-recovery.sh;
-          bash /tmp/db-recovery.sh  --scenario restore_secondary_from_primary --donor-ip ${globals.primary1_ip};
-    - else:
-        cmd[${this.id}]: |-
-          curl --silent https://raw.githubusercontent.com/jelastic-jps/mysql-cluster/master/addons/recovery/scripts/db-recovery.sh > /tmp/db-recovery.sh;
-          bash /tmp/db-recovery.sh  --scenario restore_secondary_from_primary --donor-ip ${globals.primary2_ip};
+   - cmd[${this.id}]: |-
+          curl --silent https://raw.githubusercontent.com/jelastic-jps/mysql-cluster/JE-63852/addons/recovery/scripts/db-recovery.sh > /tmp/db-recovery.sh;
+          #bash /tmp/db-recovery.sh  --scenario restore_secondary_from_primary --donor-ip ${globals.primary1_ip};
