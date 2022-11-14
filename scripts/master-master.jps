@@ -83,9 +83,10 @@ actions:
     - setNodeDisplayName[${this.id}]: Primary
     
   setupPrimaryPrimaryReplication:
-    cmd[${globals.primary2_id}]: |-
-      curl --silent https://raw.githubusercontent.com/jelastic-jps/mysql-cluster/master/addons/recovery/scripts/db-recovery.sh > /tmp/db-recovery.sh;
-      bash /tmp/db-recovery.sh  --scenario restore_primary_from_primary --donor-ip ${globals.primary1_ip}
+    - cmd[${globals.primary2_id}]: |-
+        curl --silent https://raw.githubusercontent.com/jelastic-jps/mysql-cluster/master/addons/recovery/scripts/db-recovery.sh > /tmp/db-recovery.sh;
+        bash /tmp/db-recovery.sh  --scenario restore_primary_from_primary --donor-ip ${globals.primary1_ip};
+      user: root
   
   setupSlave:
     - cmd[${this}]: |-
@@ -109,4 +110,5 @@ actions:
   setupSecondaryReplication:
     - cmd[${this}]: |-
         curl --silent https://raw.githubusercontent.com/jelastic-jps/mysql-cluster/JE-63852/addons/recovery/scripts/db-recovery.sh > /tmp/db-recovery.sh;
-         bash /tmp/db-recovery.sh  --scenario restore_secondary_from_primary --donor-ip ${globals.primary1_ip} --additional-primary ${globals.primary2_ip};
+        bash /tmp/db-recovery.sh  --scenario restore_secondary_from_primary --donor-ip ${globals.primary1_ip} --additional-primary ${globals.primary2_ip};
+      user: root
