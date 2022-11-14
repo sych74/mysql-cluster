@@ -99,7 +99,7 @@ actions:
   
   addSlaves:
     - forEach(n:nodes.sqldb):
-      - if (('${@n.id}' != '${globals.primary1_id}') && ('${this}' != '${globals.primary2_id}')):
+      - if (('${@n.id}' != '${globals.primary1_id}') && ('${@n.id}' != '${globals.primary2_id}')):
         - setupSlave:
             id: ${@n.id}
         - setupSecondaryReplication:
