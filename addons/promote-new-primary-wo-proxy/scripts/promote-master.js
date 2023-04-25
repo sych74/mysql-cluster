@@ -71,7 +71,10 @@ function promoteNewPrimary() {
         let resp = this.cmdById(this.getPrimaryNode().id, command);
 
         if (force == "false") force = false;
-        if (force || resp.result == 4109 || (resp.responses && resp.responses[0].result == 4109) || (resp.responses[0].out && resp.responses[0].out.indexOf("is alive") == -1)) {
+        if (force || resp.result == 4109 || 
+        (resp.responses && resp.responses[0].result == 4109) || 
+        (resp.responses && resp.responses[0].result == 99) || 
+        (resp.responses[0].out && resp.responses[0].out.indexOf("is alive") == -1)) {
             resp = this.addIteration();
             if (resp.result != 0) return resp;
 
