@@ -73,7 +73,6 @@ function promoteNewPrimary() {
         if (force == "false") force = false;
         if (force || resp.result == 4109 || 
         (resp.responses && resp.responses[0].result == 4109) || 
-        (resp.responses && resp.responses[0].result == 99) || 
         (resp.responses[0].out && resp.responses[0].out.indexOf("is alive") == -1)) {
             resp = this.addIteration();
             if (resp.result != 0) return resp;
@@ -86,6 +85,8 @@ function promoteNewPrimary() {
                 }
             }
         }
+        
+        if (resp.responses && resp.responses[0].result == 99) return { result: MySQL_FAILED }
 
         return { result: 0 }
     };
