@@ -74,6 +74,7 @@ function promoteNewPrimary() {
         if (force || resp.result == 4109 || 
         (resp.responses && resp.responses[0].result == 4109) || 
         (resp.responses[0].out && resp.responses[0].out.indexOf("is alive") == -1)) {
+            this.log("checkAvailability -> No route to host ");
             resp = this.addIteration();
             if (resp.result != 0) return resp;
 
