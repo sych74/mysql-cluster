@@ -86,7 +86,12 @@ function promoteNewPrimary() {
             }
         }
         
-        if (resp.responses && resp.responses[0].result == 99) return { result: MySQL_FAILED }
+        if (resp.responses && resp.responses[0].result == 99) {
+          this.log("checkAvailability -> No route to host ");
+          return {
+            result: MySQL_FAILED
+          }
+        }
 
         return { result: 0 }
     };
