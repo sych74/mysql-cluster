@@ -125,6 +125,7 @@ actions:
         echo /etc/proxysql/jcm.conf >>  /etc/jelastic/redeploy.conf;
         chown jelastic /etc/proxysql/jcm.conf;
         chown jelastic -R /etc/proxysql;
+        wget -O /etc/logrotate.d/jcm ${baseUrl}/scripts/jcm;
       user: root
 
   addSchedulerToProxySQL:
