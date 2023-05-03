@@ -1,0 +1,8 @@
+/var/log/jcm.log {
+    weekly
+    rotate 52
+    missingok
+    notifempty
+    compress
+    copytruncate
+}
