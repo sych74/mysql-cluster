@@ -73,17 +73,27 @@ actions:
     - setupPrimaryPrimaryReplication
     
   setupMaster:
-    - cmd[${this.id}]: |-
-        wget ${baseUrl}/configs/master.cnf -O /etc/mysql/conf.d/master.cnf &>> /var/log/run.log
-        sed -i "s/report_host.*/report_host = node${this.id}/" /etc/mysql/conf.d/master.cnf; 
-        sed -i "s/server-id.*/server-id = ${this.id}/" /etc/mysql/conf.d/master.cnf;
-        sed -i "s/auto-increment-offset.*/auto-increment-offset = ${this.increment}/" /etc/mysql/conf.d/master.cnf;
+    - if (/mysql/.test("${nodes.sqldb.nodeType}") && '${fn.compare([nodes.sqldb.version], 8.0.26)}' == -1):
+         - cmd[${this.id}]: |-
+              wget ${baseUrl}/configs/mysql8026master.cnf -O /etc/mysql/conf.d/master.cnf &>> /var/log/run.log
+              sed -i "s/report_host.*/report_host = node${this.id}/" /etc/mysql/conf.d/master.cnf; 
+              sed -i "s/server-id.*/server-id = ${this.id}/" /etc/mysql/conf.d/master.cnf;
+              sed -i "s/auto-increment-offset.*/auto-increment-offset = ${this.increment}/" /etc/mysql/conf.d/master.cnf;
+    - else:
+        - cmd[${this.id}]: |-
+            wget ${baseUrl}/configs/master.cnf -O /etc/mysql/conf.d/master.cnf &>> /var/log/run.log
+            sed -i "s/report_host.*/report_host = node${this.id}/" /etc/mysql/conf.d/master.cnf; 
+            sed -i "s/server-id.*/server-id = ${this.id}/" /etc/mysql/conf.d/master.cnf;
+            sed -i "s/auto-increment-offset.*/auto-increment-offset = ${this.increment}/" /etc/mysql/conf.d/master.cnf;      
+
     - if (/mysql/.test("${nodes.sqldb.nodeType}")):
       - cmd[${this.id}]: |-
           echo "master_info_repository=TABLE" >> /etc/mysql/conf.d/master.cnf;
           echo "relay_log_info_repository=TABLE" >> /etc/mysql/conf.d/master.cnf;
+    
     - setupUsers:
         id: ${this.id}
+    
     - setNodeDisplayName[${this.id}]: Primary
     
   setupPrimaryPrimaryReplication:
