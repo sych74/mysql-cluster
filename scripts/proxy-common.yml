@@ -4,7 +4,8 @@ actions:
     - cmd [proxy]: |-
         mysql -h 127.0.0.1 -P3360 -uroot -e "DROP DATABASE IF EXISTS orchestrator;"
         mysql -h 127.0.0.1 -P3360 -uroot -e "CREATE DATABASE IF NOT EXISTS orchestrator;"
-        mysql -h 127.0.0.1 -P3360 -uroot -e "GRANT ALL PRIVILEGES ON orchestrator.* TO 'admin'@'127.0.0.1' IDENTIFIED BY '${globals.ORCH_PASS}';"
+        mysql -h 127.0.0.1 -P3360 -uroot -e "CREATE USER IF NOT EXISTS 'admin'@'127.0.0.1' IDENTIFIED BY '${globals.ORCH_PASS}';"
+        mysql -h 127.0.0.1 -P3360 -uroot -e "GRANT ALL PRIVILEGES ON orchestrator.* TO 'admin'@'127.0.0.1';"
         wget ${baseUrl}/configs/orchestrator.conf.json -O /etc/orchestrator.conf.json &>> /var/log/run.log
         sed -i -e 's|orc_client_user|${globals.DB_USER}|g' /etc/orchestrator.conf.json
         sed -i -e 's|orc_client_password|${globals.DB_PASS}|g' /etc/orchestrator.conf.json
