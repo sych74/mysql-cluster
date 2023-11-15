@@ -113,3 +113,10 @@ actions:
             });
         if (resp.result != 0) return resp;
         return {result: 0};
+  
+  sendSuccess:
+    - if (!nodes.proxy):
+      - return:
+          type: success
+          message: /texts/phpmyadmin-credentials.md?_r=${fn.random}
+          email: /texts/phpmyadmin-credentials.md?_r=${fn.random}
