@@ -118,5 +118,5 @@ actions:
     - if (!nodes.proxy):
       - return:
           type: success
-          message: /texts/phpmyadmin-credentials.md?_r=${fn.random}
+          text: /texts/phpmyadmin-credentials.md?_r=${fn.random}
           email: /texts/phpmyadmin-credentials.md?_r=${fn.random}
