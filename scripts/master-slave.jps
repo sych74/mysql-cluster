@@ -5,9 +5,6 @@ description: 'DB Auto Clustering: 1 x Primary + N x Secondary'
 
 baseUrl: https://raw.githubusercontent.com/sych74/mysql-cluster/JE-68949
 
-success:
-  text: /texts/phpmyadmin-credentials.md
-
 targetNodes: none
 nodeGroupAlias:
   ${settings.nodeGroup}: sqldb
@@ -68,6 +65,7 @@ onInstall:
   - forEach(i:nodes.sqldb):
     - if (!${@i.ismaster}):
         addSlave: ${@i.id}
+  - sendSuccess
 
 actions:
 
