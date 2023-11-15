@@ -74,7 +74,7 @@ actions:
 
   setupAdminUser:
     - cmd[${this.id}]: |-
-        wget https://raw.githubusercontent.com/jelastic-jps/mysql-cluster/v3.0.0/scripts/setupUser.sh -O ~/setupUser.sh;
+        wget ${baseUrl}/scripts/setupUser.sh -O ~/setupUser.sh &>> /var/log/run.log;
         bash ~/setupUser.sh ${globals.DB_USER} ${globals.DB_PASS} &>> /var/log/run.log;
       user: root
 
