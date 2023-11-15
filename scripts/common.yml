@@ -87,7 +87,7 @@ actions:
         pswd: ${globals.REPLICA_PSWD}
 
   addCustomConfig:
-    - cmd[sqldb]: wget https://raw.githubusercontent.com/jelastic-jps/mysql-cluster/v3.0.0/configs/custom.cnf -O ${globals.customConfigFile};
+    - cmd[sqldb]: wget ${baseUrl}/configs/custom.cnf -O ${globals.customConfigFile} &>> /var/log/run.log;
     - env.file.AddFavorite:
       nodeGroup: sqldb
       path: ${globals.customConfigFile}
