@@ -73,7 +73,7 @@ actions:
     - setupPrimaryPrimaryReplication
     
   setupMaster:
-    - if (/mysql/.test("${nodes.sqldb.nodeType}") && '${fn.compare([nodes.sqldb.version], 8.0.26)}' == -1):
+    - if (/mysql/.test("${nodes.sqldb.nodeType}") && '${fn.compare([nodes.sqldb.version], 8.0.26)}' == 1):
          - cmd[${this.id}]: |-
               wget ${baseUrl}/configs/mysql8026master.cnf -O /etc/mysql/conf.d/master.cnf &>> /var/log/run.log
               sed -i "s/report_host.*/report_host = node${this.id}/" /etc/mysql/conf.d/master.cnf; 
