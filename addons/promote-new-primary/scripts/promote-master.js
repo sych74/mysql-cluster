@@ -28,6 +28,9 @@ function promoteNewPrimary() {
         let resp = this.defineAddonType();
         if (resp.result != 0) return resp;
 
+        resp = this.diagnosticNodes();
+        if (resp.result != 0) return resp;        
+
         //PROXY
         if (this.getAddOnType()) {
             resp = this.auth();
@@ -385,7 +388,7 @@ function promoteNewPrimary() {
                     type: out.node_type
                 });
 
-                if (out.service_status == "up" || out.status == "ok") {
+                if (out.node_type == SECONDARY && out.service_status == "up") {
                     clusterUp = true;
                 }
             }
@@ -549,10 +552,6 @@ function promoteNewPrimary() {
 
     this.newPrimaryOnProxy = function() {
         let alreadySetNewPrimary = false;
-        let resp = this.diagnosticNodes();
-
-        if (resp.result != 0) return resp;
-
         let nodes = this.getParsedNodes();
 
         if (nodes) {
