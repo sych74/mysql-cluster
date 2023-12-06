@@ -401,7 +401,7 @@ function promoteNewPrimary() {
         if (!clusterUp) {
             var title = "Promote new primary for " + envName + " are incorrect",
                 text = "Promote new primary for " + envName + " are incorrect";
-            resp = jelastic.message.email.Send(appid, session, null, user.email, user.email, title, text);
+            resp = jelastic.message.email.Send(appid, session, null, "${user.email}", "${user.email}", title, text);
             if (resp.result != 0) return resp;
             return {
                 result: CLUSTER_FAILED,
