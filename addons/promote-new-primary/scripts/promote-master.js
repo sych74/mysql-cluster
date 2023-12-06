@@ -1,5 +1,4 @@
 //@reg(envName, token, uid)
-var email = getParam("email", ""),
 function promoteNewPrimary() {
     let envInfo;
     let ROOT = "root";
