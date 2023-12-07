@@ -157,7 +157,7 @@ actions:
         java.lang.Thread.sleep(1000);
       }
 
-      scriptBody = new StrSubstitutor({token: "${globals.random}"}, "${", "}").replace(scriptBody);
+      scriptBody = new StrSubstitutor({token: "${globals.random}", email: "${user.email}"}, "${", "}").replace(scriptBody);
       
       resp = api.dev.scripting.GetScript(appid, session, "${globals.scriptName}");
       if (resp.result == Response.OK) {
