@@ -399,14 +399,14 @@ function promoteNewPrimary() {
         }
 
         if (!clusterUp) {
-            var title = "Promote new primary for " + envName + " are incorrect",
-                text = "Promote new primary for " + envName + " are incorrect";
+            var title = "Secondary node is failed. Unable promote new primary from secondary for " + envName,
+                text = "Secondary node is failed. Unable promote new primary from secondary for " + envName;
             resp = jelastic.message.email.Send(appid, session, null, "${email}", "${email}", title, text);
             if (resp.result != 0) return resp;
             return {
                 result: CLUSTER_FAILED,
                 type: WARNING,
-                message: "Cluster failed. Unable promote new primary",
+                message: "Secondary node is failed. Unable promote new primary from secondary",
             }
         }
 
