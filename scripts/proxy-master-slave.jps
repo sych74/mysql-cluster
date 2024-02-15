@@ -69,7 +69,6 @@ onInstall:
   - getReplicaUser
   - resetProxyNodes
   - setupOrchestrator
-  - setupProxySQLCluster
   - setupProxySQL
   - if ('${globals.SCHEME}'.toLowerCase() == 'master'):
     - setGlobals:
@@ -90,6 +89,8 @@ onInstall:
               id: "${@l.id}"
         - addSlave:
             id: "${@l.id}"
+  
+  - setupProxySQLCluster
 
 actions:
 
