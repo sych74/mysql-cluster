@@ -112,7 +112,10 @@ actions:
 
   addMaster:
     cmd [proxy]: |-
+      MYSQL_PWD=admin mysql -h 127.0.0.1 -P6032 -uadmin -e "SELECT * FROM mysql_servers" >> /var/log/run.log;
+      echo "INSERT INTO mysql_servers (hostgroup_id, hostname, port) VALUES (10, 'node${this.id}', 3306);" >> /var/log/run.log;
       MYSQL_PWD=admin mysql -h 127.0.0.1 -P6032 -uadmin -e "INSERT INTO mysql_servers (hostgroup_id, hostname, port) VALUES (10, 'node${this.id}', 3306);"
+      MYSQL_PWD=admin mysql -h 127.0.0.1 -P6032 -uadmin -e "SELECT * FROM mysql_servers" >> /var/log/run.log;
       MYSQL_PWD=admin mysql -h 127.0.0.1 -P6032 -uadmin  -e "LOAD MYSQL SERVERS TO RUNTIME; SAVE MYSQL SERVERS TO DISK;"
       MYSQL_PWD=${globals.DB_PASS} mysql -u${globals.DB_USER} -hnode${this.id} -e "show slave hosts;"
       /usr/local/orchestrator/orchestrator -c discover -i node${this.id} cli;
@@ -120,8 +123,11 @@ actions:
   
   addSlave:
     cmd[proxy]: |-
+      MYSQL_PWD=admin mysql -h 127.0.0.1 -P6032 -uadmin -e "SELECT * FROM mysql_servers" >> /var/log/run.log;
+      echo "INSERT INTO mysql_servers (hostgroup_id, hostname, port, max_replication_lag) VALUES (11, 'node${this.id}', 3306, '${globals.MAX_REPL_LAG}');" >> /var/log/run.log;
       MYSQL_PWD=admin mysql -h 127.0.0.1 -P6032 -uadmin  -e "INSERT INTO mysql_servers (hostgroup_id, hostname, port, max_replication_lag) 
         VALUES (11, 'node${this.id}', 3306, '${globals.MAX_REPL_LAG}');"
+      MYSQL_PWD=admin mysql -h 127.0.0.1 -P6032 -uadmin -e "SELECT * FROM mysql_servers" >> /var/log/run.log;
       MYSQL_PWD=admin mysql -h 127.0.0.1 -P6032 -uadmin  -e "LOAD MYSQL SERVERS TO RUNTIME;SAVE MYSQL SERVERS TO DISK;"
 
   removeSlave:
