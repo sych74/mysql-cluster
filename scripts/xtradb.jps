@@ -2,7 +2,7 @@ jpsType: update
 id: percona-xtradb-cluster
 name: Percona XtraDB Cluster
 description: Percona XtraDB Auto Clustering
-baseUrl: https://raw.githubusercontent.com/sych74/mysql-cluster/JE-75993
+baseUrl: https://cdn.jsdelivr.net/gh/jelastic-jps/mysql-cluster@3.0.0
 
 globals:
   cdnUrl: https://cdn.jsdelivr.net/gh
