@@ -1,0 +1,30 @@
+{
+  "engines": {
+    "mysql": {
+      "docUrl": "https://dev.mysql.com/doc/refman/8.4/en/upgrade-paths.html",
+      "upgradeGuideUrl": "https://dev.mysql.com/doc/refman/8.4/en/upgrading.html",
+      "nodeTypeMatch": "mysql|percona",
+      "alwaysStrictRolling": true,
+      "ltsLadder": [
+        "8.0",
+        "8.4",
+        "9.7"
+      ]
+    },
+    "mariadb": {
+      "docUrl": "https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/upgrading/mariadb-community-server-upgrade-paths/general-upgrade-information",
+      "upgradeGuideUrl": "https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/upgrading/what-mariadb-upgrade-executes",
+      "nodeTypeMatch": "mariadb",
+      "strictRollingSchemes": ["galera"],
+      "galeraHint": "Galera rolling upgrade allows only one LTS step at a time.",
+      "ltsLadder": [
+        "10.6",
+        "10.11",
+        "11.4",
+        "11.8",
+        "12.3",
+        "12.8"
+      ]
+    }
+  }
+}

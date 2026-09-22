@@ -31,12 +31,19 @@ onAfterResetNodePassword[sqldb]:
     user: root
 
 onBeforeRedeployContainer[sqldb, useExistingVolumes:true]:
-  - validateUpgradePath:
-      targetTag: ${event.params.tag}
+  - script: ${globals.path}/addons/auto-clustering/scripts/validate-upgrade-path.js?_r=${fn.random}
+  - if ('${response.result}' != '0'):
+    - stopEvent:
+        type: warning
+        message: "${response.message:Unsupported database upgrade path.}"
 
 onAfterRedeployContainer[sqldb, useExistingVolumes:true]:
   - if ('${event.response.result}' == '0'):
-    - runDbUpgrade
+    - script: ${globals.path}/addons/auto-clustering/scripts/post-redeploy-upgrade-doc.js?_r=${fn.random}
+    - if ('${response.message}'):
+      - return:
+          type: success
+          message: "${response.message}"
 
 onInstall:
   - if ('${settings.db_pass}'.length < 8):
@@ -71,23 +78,6 @@ onInstall:
 
 actions:
 
-  validateUpgradePath:
-    - script: ${globals.path}/addons/upgrade/scripts/validate-upgrade-path.js?_r=${fn.random}
-      targetTag: ${this.targetTag}
-    - if ('${response.result}' != '0'):
-      - stopEvent:
-          type: warning
-          message: "${response.message:Unsupported MySQL upgrade path.}"
-
-  runDbUpgrade:
-    - forEach(i:nodes.sqldb):
-      - if (/mariadb/.test("${nodes.sqldb.nodeType}")):
-        - cmd[${@i.id}]: |-
-            curl -sf "${globals.path}/addons/upgrade/scripts/run-db-upgrade.sh?_r=${fn.random}" -o /tmp/run-db-upgrade.sh
-            chmod +x /tmp/run-db-upgrade.sh
-            /tmp/run-db-upgrade.sh
-          user: root
-  
   install-jps:
     install:
       jps: "${this.jps}"
