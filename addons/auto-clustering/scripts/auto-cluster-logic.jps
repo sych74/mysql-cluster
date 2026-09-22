@@ -13,6 +13,7 @@ description:
 globals:
   path: "${settings.path}"
   scripts: "${settings.path}/scripts"
+  upgrade_path_js: "${settings.path}/addons/auto-clustering/scripts/upgrade-path.js"
 
 permanent: true
 
@@ -31,16 +32,18 @@ onAfterResetNodePassword[sqldb]:
     user: root
 
 onBeforeRedeployContainer[sqldb, useExistingVolumes:true]:
-  - script: ${globals.path}/addons/auto-clustering/scripts/validate-upgrade-path.js?_r=${fn.random}
-  - if ('${response.result}' != '0'):
+  - script: ${globals.upgrade_path_js}?_r=${fn.random}
+    mode: validate
+  - if (!${response.allowed:false}):
     - stopEvent:
         type: warning
         message: "${response.message:Unsupported database upgrade path.}"
 
 onAfterRedeployContainer[sqldb, useExistingVolumes:true]:
   - if ('${event.response.result}' == '0'):
-    - script: ${globals.path}/addons/auto-clustering/scripts/post-redeploy-upgrade-doc.js?_r=${fn.random}
-    - if ('${response.message}'):
+    - script: ${globals.upgrade_path_js}?_r=${fn.random}
+      mode: doc
+    - if (${response.hasDoc:false}):
       - return:
           type: success
           message: "${response.message}"

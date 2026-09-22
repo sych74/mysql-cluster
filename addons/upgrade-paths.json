@@ -1,29 +1,56 @@
 {
   "engines": {
     "mysql": {
-      "docUrl": "https://dev.mysql.com/doc/refman/8.4/en/upgrade-paths.html",
-      "upgradeGuideUrl": "https://dev.mysql.com/doc/refman/8.4/en/upgrading.html",
-      "nodeTypeMatch": "mysql|percona",
+      "nodeTypeMatch": "mysql",
+      "docUrl": "https://dev.mysql.com/doc/refman/9.7/en/upgrade-paths.html",
+      "upgradeGuideUrl": "https://dev.mysql.com/doc/refman/9.7/en/upgrading.html",
+      "replicationUrl": "https://dev.mysql.com/doc/refman/9.7/en/replication-upgrade.html",
       "alwaysStrictRolling": true,
       "ltsLadder": [
+        "5.7",
+        "8.0",
+        "8.4",
+        "9.7",
+        "28.4"
+      ]
+    },
+    "percona": {
+      "nodeTypeMatch": "percona",
+      "docUrl": "https://docs.percona.com/percona-server/9.7/upgrade.html",
+      "upgradeGuideUrl": "https://docs.percona.com/percona-server/9.7/upgrade.html",
+      "replicationUrl": "https://dev.mysql.com/doc/refman/9.7/en/replication-upgrade.html",
+      "alwaysStrictRolling": true,
+      "schemeDocUrls": {
+        "xtradb": "https://docs.percona.com/percona-xtradb-cluster/9.7/upgrade-guide.html"
+      },
+      "schemeHints": {
+        "xtradb": "A Percona XtraDB Cluster node cannot join a cluster running a different major version, so every LTS series must be applied in turn."
+      },
+      "ltsLadder": [
+        "5.7",
         "8.0",
         "8.4",
         "9.7"
       ]
     },
     "mariadb": {
-      "docUrl": "https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/upgrading/mariadb-community-server-upgrade-paths/general-upgrade-information",
-      "upgradeGuideUrl": "https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/upgrading/what-mariadb-upgrade-executes",
       "nodeTypeMatch": "mariadb",
+      "docUrl": "https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/upgrading/mariadb-community-server-upgrade-paths/general-upgrade-information",
+      "upgradeGuideUrl": "https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/upgrading/platform-specific-upgrade-guides/upgrading-on-linux/upgrading-between-major-mariadb-versions",
+      "replicationUrl": "https://mariadb.com/docs/server/server-management/install-and-upgrade-mariadb/upgrading/mariadb-community-server-upgrade-paths",
       "strictRollingSchemes": ["galera"],
-      "galeraHint": "Galera rolling upgrade allows only one LTS step at a time.",
+      "schemeHints": {
+        "galera": "A Galera rolling upgrade supports only one LTS step at a time; skipping versions is supported only with a full cluster shutdown."
+      },
       "ltsLadder": [
+        "10.4",
+        "10.5",
         "10.6",
         "10.11",
         "11.4",
         "11.8",
         "12.3",
-        "12.8"
+        "13.3"
       ]
     }
   }
