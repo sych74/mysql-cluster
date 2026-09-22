@@ -26,8 +26,8 @@ function describe() {
     return {
         result: 0,
         hasDoc: true,
-        message: "Database node redeployed to " + targetTag +
-            ". Review the official upgrade documentation: " + guideUrl + topologyNote()
+        message: "Database node redeployed to " + targetTag + ". Review the " +
+            link("official upgrade documentation", guideUrl) + "." + topologyNote()
     };
 }
 
@@ -60,8 +60,8 @@ function validate() {
     }
 
     if (compareVersions(current, target) > 0) {
-        return block("Downgrade from " + currentVersion + " to " + targetTag + " is not supported. See " +
-            docUrl() + " for supported paths.");
+        return block("Downgrade from " + currentVersion + " to " + targetTag + " is not supported. See the " +
+            link("supported upgrade paths", docUrl()) + ".");
     }
 
     strictRolling = isStrictRolling(scheme, engine);
@@ -111,6 +111,10 @@ function schemeUrl(engineConfig) {
     return engineConfig.schemeDocUrls ? engineConfig.schemeDocUrls[scheme] : null;
 }
 
+function link(text, url) {
+    return "[" + text + "](" + url + ")";
+}
+
 function docUrl() {
     return schemeUrl(engine) || engine.docUrl;
 }
@@ -129,7 +133,9 @@ function topologyNote() {
         return "";
     }
 
-    return engine.replicationUrl ? note + " See " + engine.replicationUrl + "." : note;
+    if (!engine.replicationUrl) return note;
+
+    return note + " See " + link("Upgrading a Replication Topology", engine.replicationUrl) + ".";
 }
 
 // Accepts both a bare version ("11.4.4") and a full image tag ("mariadb:11.4-jammy").
@@ -191,5 +197,5 @@ function buildUpgradeErrorMessage(current) {
     if (hint) msg += " " + hint;
     if (nextStep) msg += " Upgrade to " + nextStep.major + "." + nextStep.minor + " first.";
 
-    return msg + " See " + docUrl() + " for supported paths.";
+    return msg + " See the " + link("supported upgrade paths", docUrl()) + ".";
 }
