@@ -39,14 +39,6 @@ function validate() {
             "and causes full downtime. Enable sequential redeploy or redeploy the nodes one by one.");
     }
 
-    if (!paths || !paths.engines) {
-        return block("Unable to load upgrade path rules. Redeploy blocked for safety.");
-    }
-
-    if (!engine) {
-        return block("Unsupported database engine for upgrade path validation.");
-    }
-
     current = parseVersion(currentVersion);
     target = parseVersion(targetTag);
 
@@ -59,8 +51,27 @@ function validate() {
             "'. Redeploy blocked for safety.");
     }
 
+    // Within a single release series the data format does not change, so both patch upgrades
+    // and rollbacks are supported by every engine and need no upgrade path rules. Keeping this
+    // case independent of the rules keeps security patches installable when the rules are
+    // unreachable, and keeps a bad patch release revertable.
+    if (compareSeries(current, target) === 0) {
+        return {result: 0, allowed: true};
+    }
+
+    if (!paths || !paths.engines) {
+        return block("Unable to load the upgrade path rules, so the redeploy to " + targetTag +
+            " is blocked for safety. A redeploy within the current " + series(current) +
+            " series is still allowed.");
+    }
+
+    if (!engine) {
+        return block("Unsupported database engine for upgrade path validation.");
+    }
+
     if (compareVersions(current, target) > 0) {
-        return block("Downgrade from " + currentVersion + " to " + targetTag + " is not supported. See the " +
+        return block("Downgrade from " + currentVersion + " to " + targetTag + " is not supported: a rollback " +
+            "is possible only within the " + series(current) + " series. See the " +
             link("supported upgrade paths", docUrl()) + ".");
     }
 
@@ -149,6 +160,10 @@ function parseSeries(version) {
     return match ? {major: +match[1], minor: +match[2]} : null;
 }
 
+function series(version) {
+    return version.major + "." + version.minor;
+}
+
 function compareSeries(a, b) {
     if (a.major !== b.major) return a.major < b.major ? -1 : 1;
     if (a.minor !== b.minor) return a.minor < b.minor ? -1 : 1;
@@ -195,7 +210,7 @@ function buildUpgradeErrorMessage(current) {
         nextStep = nextLadderStep(current, engine.ltsLadder || []);
 
     if (hint) msg += " " + hint;
-    if (nextStep) msg += " Upgrade to " + nextStep.major + "." + nextStep.minor + " first.";
+    if (nextStep) msg += " Upgrade to " + series(nextStep) + " first.";
 
     return msg + " See the " + link("supported upgrade paths", docUrl()) + ".";
 }
