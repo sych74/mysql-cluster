@@ -149,7 +149,7 @@ function topologyNote() {
     return note + " See " + link("Upgrading a Replication Topology", engine.replicationUrl) + ".";
 }
 
-// Accepts both a bare version ("11.4.4") and a full image tag ("mariadb:11.4-jammy").
+// Accepts both a bare version ("11.4.4") and a tag prefixed with the image name ("mariadb:11.4.4").
 function parseVersion(value) {
     var match = String(value || "").replace(/^.*:/, "").match(/(\d+)\.(\d+)(?:\.(\d+))?/);
     return match ? {major: +match[1], minor: +match[2], patch: match[3] ? +match[3] : 0} : null;
