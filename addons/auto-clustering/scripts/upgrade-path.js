@@ -24,7 +24,8 @@ function describe() {
     if (!guideUrl) return {result: 0, hasDoc: false};
 
     return {
-        result: 0,
+        result: 210,
+        type: "info",
         hasDoc: true,
         message: "Database node redeployed to " + targetTag + ". Review the " +
             link("official upgrade documentation", guideUrl) + "." + topologyNote()
