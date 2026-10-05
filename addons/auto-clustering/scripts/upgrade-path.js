@@ -19,7 +19,7 @@ engine = paths && paths.engines ? getEngineConfig(nodeType, paths.engines) : nul
 return mode == MODE_DOC ? describe() : validate();
 
 function describe() {
-    var guideUrl = engine ? schemeUrl(engine) || engine.upgradeGuideUrl || engine.docUrl : null;
+    var guideUrl = engine ? engine.upgradeGuideUrl || engine.docUrl : null;
 
     if (!guideUrl) return {result: 0, hasDoc: false};
 
@@ -119,16 +119,12 @@ function getEngineConfig(dbNodeType, engines) {
     return null;
 }
 
-function schemeUrl(engineConfig) {
-    return engineConfig.schemeDocUrls ? engineConfig.schemeDocUrls[scheme] : null;
-}
-
 function link(text, url) {
     return "[" + text + "](" + url + ")";
 }
 
 function docUrl() {
-    return schemeUrl(engine) || engine.docUrl;
+    return engine.docUrl;
 }
 
 // Both MySQL and MariaDB require replicas to be upgraded before the source: a source
@@ -145,9 +141,7 @@ function topologyNote() {
         return "";
     }
 
-    if (!engine.replicationUrl) return note;
-
-    return note + " See " + link("Upgrading a Replication Topology", engine.replicationUrl) + ".";
+    return note;
 }
 
 // Accepts both a bare version ("11.4.4") and a tag prefixed with the image name ("mariadb:11.4.4").
