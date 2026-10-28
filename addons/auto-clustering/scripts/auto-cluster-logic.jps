@@ -32,28 +32,20 @@ onAfterResetNodePassword[sqldb]:
 
 onBeforeRedeployContainer[sqldb, useExistingVolumes:true]:
   - script: upgrade-path.js?_r=${fn.random}
-    mode: validate
   - if (!${response.allowed:false}):
     - stopEvent:
         type: warning
         message: "${response.message:Unsupported database upgrade path.}"
 
 onAfterRedeployContainer[sqldb, useExistingVolumes:true]:
-  - if ('${event.response.result}' == '0'):
-    - if (/mariadb/.test("${nodes.sqldb.nodeType}")):
-      - if ('${event.params.nodeId:}'):
+  - if ('${event.response.result}' == '0' && /mariadb/.test("${nodes.sqldb.nodeType}")):
+    - if ('${event.params.nodeId:}'):
+        mariadbUpgrade:
+          id: ${event.params.nodeId}
+    - if (!'${event.params.nodeId:}'):
+        forEach(nodes.sqldb):
           mariadbUpgrade:
-            id: ${event.params.nodeId}
-      - if (!'${event.params.nodeId:}'):
-          forEach(nodes.sqldb):
-            mariadbUpgrade:
-              id: ${@i.id}
-    - script: upgrade-path.js?_r=${fn.random}
-      mode: doc
-
-responses:
-  210:
-    type: info
+            id: ${@i.id}
 
 onInstall:
   - if ('${settings.db_pass}'.length < 8):

@@ -1,6 +1,4 @@
-var MODE_DOC = "doc",
-    mode = getParam("mode", "validate"),
-    nodeType = "${nodes.sqldb.nodeType}",
+var nodeType = "${nodes.sqldb.nodeType}",
     targetTag = "${event.params.tag:}",
     targetNodeId = "${event.params.nodeId:}",
     nodeGroup = "${nodes.sqldb.master.nodeGroup:sqldb}",
@@ -12,27 +10,13 @@ var MODE_DOC = "doc",
     paths, engine;
 
 if (!/mysql|percona|mariadb/.test(nodeType) || !targetTag) {
-    return mode == MODE_DOC ? {result: 0, hasDoc: false} : {result: 0, allowed: true};
+    return {result: 0, allowed: true};
 }
 
 paths = loadJson(pathsUrl);
 engine = paths && paths.engines ? getEngineConfig(nodeType, paths.engines) : null;
 
-return mode == MODE_DOC ? describe() : validate();
-
-function describe() {
-    var guideUrl = engine ? engine.upgradeGuideUrl || engine.docUrl : null;
-
-    if (!guideUrl) return {result: 0, hasDoc: false};
-
-    return {
-        result: 210,
-        type: "info",
-        hasDoc: true,
-        message: "Database node redeployed to " + targetTag + ". Review the " +
-            link("official upgrade documentation", guideUrl) + "." + topologyNote()
-    };
-}
+return validate();
 
 function validate() {
     var target = parseVersion(targetTag),
@@ -85,7 +69,7 @@ function getNodeVersion(node) {
 function validateNode(node, target) {
     var currentVersion = getNodeVersion(node),
         current = parseVersion(currentVersion),
-        strictRolling;
+        skipped;
 
     if (!current) {
         return block("Unable to determine the database version of node " + node.id +
@@ -96,7 +80,7 @@ function validateNode(node, target) {
     // may already be upgraded by the newer server. The check needs no upgrade path rules.
     if (compareVersions(current, target) > 0) {
         return block("Downgrade from " + currentVersion + " to " + targetTag + " is not supported." +
-            (engine ? " See the " + link("supported upgrade paths", docUrl()) + "." : ""));
+            (engine ? " See the " + link("supported upgrade paths", engine.docUrl) + "." : ""));
     }
 
     // Patch upgrades within a single release series are supported by every engine and need no
@@ -115,10 +99,10 @@ function validateNode(node, target) {
         return block("Unsupported database engine for upgrade path validation.");
     }
 
-    strictRolling = isStrictRolling(scheme, engine);
+    skipped = isStrict(engine) ? findSkippedLts(current, target, engine.ltsLadder || []) : null;
 
-    if (strictRolling && findSkippedLts(current, target, engine.ltsLadder || [])) {
-        return block(buildUpgradeErrorMessage(current, currentVersion));
+    if (skipped) {
+        return block(buildUpgradeErrorMessage(currentVersion, skipped));
     }
 
     return {result: 0, allowed: true};
@@ -147,14 +131,11 @@ function loadJson(url) {
     }
 }
 
+// Engines are keyed by the name their node type contains: mysql, perconadb, mariadb-dockerized.
 function getEngineConfig(dbNodeType, engines) {
-    var key, item;
+    var key;
     for (key in engines) {
-        if (!engines.hasOwnProperty(key)) continue;
-        item = engines[key];
-        if (item.nodeTypeMatch && new RegExp(item.nodeTypeMatch).test(dbNodeType)) {
-            return item;
-        }
+        if (engines.hasOwnProperty(key) && dbNodeType.indexOf(key) >= 0) return engines[key];
     }
     return null;
 }
@@ -163,36 +144,11 @@ function link(text, url) {
     return "[" + text + "](" + url + ")";
 }
 
-function docUrl() {
-    return engine.docUrl;
-}
-
-// Both MySQL and MariaDB require replicas to be upgraded before the source: a source
-// running a later release cannot replicate to a replica running an earlier one.
-function topologyNote() {
-    var note;
-
-    if (scheme == "slave") {
-        note = " Upgrade every replica before the source: a newer source cannot replicate to an older replica.";
-    } else if (scheme == "master") {
-        note = " In a primary-primary topology stop replication towards the primary that is not upgraded yet: " +
-            "a newer source cannot replicate to an older replica.";
-    } else {
-        return "";
-    }
-
-    return note;
-}
-
-// Accepts both a bare version ("11.4.4") and a tag prefixed with the image name ("mariadb:11.4.4").
+// Accepts a bare version ("11.4.4"), a series ("11.4") and a tag prefixed with the image name
+// ("mariadb:11.4.4").
 function parseVersion(value) {
     var match = String(value || "").replace(/^.*:/, "").match(/(\d+)\.(\d+)(?:\.(\d+))?/);
     return match ? {major: +match[1], minor: +match[2], patch: match[3] ? +match[3] : 0} : null;
-}
-
-function parseSeries(version) {
-    var match = String(version).match(/^(\d+)\.(\d+)/);
-    return match ? {major: +match[1], minor: +match[2]} : null;
 }
 
 function series(version) {
@@ -212,43 +168,32 @@ function compareVersions(a, b) {
     return 0;
 }
 
-function isStrictRolling(topology, engineConfig) {
-    if (engineConfig.alwaysStrictRolling) return true;
-    if (!engineConfig.strictRollingSchemes) return false;
-    return engineConfig.strictRollingSchemes.indexOf(topology) >= 0;
+// The LTS ladder applies to every scheme unless the engine limits it to some schemes only
+// (MariaDB supports skipping versions everywhere except a Galera rolling upgrade).
+function isStrict(engineConfig) {
+    return !engineConfig.strictSchemes || engineConfig.strictSchemes.indexOf(scheme) >= 0;
 }
 
-// An upgrade is supported only when no LTS series sits strictly between the current
-// and the target version, i.e. no LTS series gets skipped over.
+// An upgrade is supported only when no LTS series sits strictly between the current and the
+// target version. The ladder is sorted, so the first skipped series is the next required step.
 function findSkippedLts(cur, tgt, ladder) {
     var i, item;
     for (i = 0; i < ladder.length; i++) {
-        item = parseSeries(ladder[i]);
+        item = parseVersion(ladder[i]);
         if (item && compareSeries(cur, item) < 0 && compareSeries(item, tgt) < 0) return item;
     }
     return null;
 }
 
-function nextLadderStep(cur, ladder) {
-    var i, item;
-    for (i = 0; i < ladder.length; i++) {
-        item = parseSeries(ladder[i]);
-        if (item && compareSeries(cur, item) > 0) continue;
-        if (item && compareSeries(cur, item) < 0) return item;
-    }
-    return null;
-}
-
-function buildUpgradeErrorMessage(current, currentVersion) {
+function buildUpgradeErrorMessage(currentVersion, nextStep) {
     var msg = "Upgrade from " + currentVersion + " to " + targetTag + " is not supported.",
-        hint = engine.schemeHints ? engine.schemeHints[scheme] : null,
-        nextStep = nextLadderStep(current, engine.ltsLadder || []);
+        hint = engine.schemeHints ? engine.schemeHints[scheme] : null;
 
     if (hint) msg += " " + hint;
     // The intermediate series may be no longer offered as a tag, so the logical dump is suggested
     // as the way out that is always available.
-    if (nextStep) msg += " Upgrade to the latest " + series(nextStep) + " release first, or, if that " +
-        "version is not available, migrate the data with a logical dump into a new environment.";
+    msg += " Upgrade to the latest " + series(nextStep) + " release first, or, if that version is not " +
+        "available, migrate the data with a logical dump into a new environment.";
 
-    return msg + " See the " + link("supported upgrade paths", docUrl()) + ".";
+    return msg + " See the " + link("supported upgrade paths", engine.docUrl) + ".";
 }
