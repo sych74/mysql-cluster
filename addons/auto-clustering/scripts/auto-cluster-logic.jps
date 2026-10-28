@@ -40,7 +40,15 @@ onBeforeRedeployContainer[sqldb, useExistingVolumes:true]:
 
 onAfterRedeployContainer[sqldb, useExistingVolumes:true]:
   - if ('${event.response.result}' == '0'):
-      script: upgrade-path.js?_r=${fn.random}
+    - if (/mariadb/.test("${nodes.sqldb.nodeType}")):
+      - if ('${event.params.nodeId:}'):
+          mariadbUpgrade:
+            id: ${event.params.nodeId}
+      - if (!'${event.params.nodeId:}'):
+          forEach(nodes.sqldb):
+            mariadbUpgrade:
+              id: ${@i.id}
+    - script: upgrade-path.js?_r=${fn.random}
       mode: doc
 
 responses:
@@ -79,6 +87,18 @@ onInstall:
       if (nodes.sqldb.length > 1): setupCluster
 
 actions:
+
+  # MariaDB does not upgrade the system tables on startup, unlike MySQL 8.0+ and Percona.
+  # mariadb-upgrade compares the server version with mysql_upgrade_info and does nothing
+  # when the system tables are already upgraded, so it is safe to run after every redeploy.
+  mariadbUpgrade:
+    cmd[${this.id}]: |-
+      ADMIN=$(command -v mariadb-admin || command -v mysqladmin)
+      UPGRADE=$(command -v mariadb-upgrade || command -v mysql_upgrade)
+      export MYSQL_PWD='${settings.db_pass}'
+      for i in $(seq 1 60); do $ADMIN -u'${settings.db_user}' ping &>/dev/null && break; sleep 5; done
+      $UPGRADE -u'${settings.db_user}' &>> /var/log/run.log
+    user: root
 
   install-jps:
     install:

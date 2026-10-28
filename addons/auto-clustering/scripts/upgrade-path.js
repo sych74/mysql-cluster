@@ -2,10 +2,12 @@ var MODE_DOC = "doc",
     mode = getParam("mode", "validate"),
     nodeType = "${nodes.sqldb.nodeType}",
     targetTag = "${event.params.tag:}",
-    sequential = "${event.params.sequential:}",
-    nodeCount = parseInt("${nodes.sqldb.length:1}", 10) || 1,
+    targetNodeId = "${event.params.nodeId:}",
+    nodeGroup = "${nodes.sqldb.master.nodeGroup:sqldb}",
+    envName = "${env.envName}",
     scheme = String("${settings.scheme:slave}").toLowerCase(),
-    currentVersion = "${nodes.sqldb.master.version:}" || "${nodes.sqldb.version:}",
+    VERSION_CMD = "(command -v mariadbd >/dev/null && mariadbd --version || mysqld --version) 2>/dev/null | " +
+        "grep -oE 'Ver [0-9]+\\.[0-9]+\\.[0-9]+' | head -n1 | cut -d' ' -f2",
     pathsUrl = "${globals.path}/addons/upgrade-paths.json?_r=${fn.random}",
     paths, engine;
 
@@ -33,29 +35,72 @@ function describe() {
 }
 
 function validate() {
-    var current, target, strictRolling;
-
-    if (nodeCount > 1 && sequential == "false") {
-        return block("Redeploying all " + nodeCount + " database nodes at once breaks the cluster quorum " +
-            "and causes full downtime. Enable sequential redeploy or redeploy the nodes one by one.");
-    }
-
-    current = parseVersion(currentVersion);
-    target = parseVersion(targetTag);
-
-    if (!current) {
-        return block("Unable to determine current database version. Redeploy blocked for safety.");
-    }
+    var target = parseVersion(targetTag),
+        nodes, resp, i;
 
     if (!target) {
         return block("Unable to determine the target version from tag '" + targetTag +
             "'. Redeploy blocked for safety.");
     }
 
-    // Within a single release series the data format does not change, so both patch upgrades
-    // and rollbacks are supported by every engine and need no upgrade path rules. Keeping this
-    // case independent of the rules keeps security patches installable when the rules are
-    // unreachable, and keeps a bad patch release revertable.
+    nodes = getTargetNodes();
+    if (!nodes) {
+        return block("Unable to get the database nodes. Redeploy blocked for safety.");
+    }
+
+    for (i = 0; i < nodes.length; i++) {
+        resp = validateNode(nodes[i], target);
+        if (!resp.allowed) return resp;
+    }
+
+    return {result: 0, allowed: true};
+}
+
+// The upgrade path depends on the version the data directory of every redeployed node was last
+// started with, which may differ between nodes after an interrupted sequential redeploy.
+function getTargetNodes() {
+    var resp = api.env.control.GetEnvInfo(envName, session),
+        nodes = [], i, n;
+
+    if (resp.result != 0) return null;
+
+    for (i = 0, n = resp.nodes; i < n.length; i++) {
+        if (n[i].nodeGroup != nodeGroup) continue;
+        if (targetNodeId && String(n[i].id) != targetNodeId) continue;
+        nodes.push(n[i]);
+    }
+
+    return nodes;
+}
+
+// The installed server binary is the most reliable source of the node version; the version
+// stored in the node metadata is used only when the node does not respond.
+function getNodeVersion(node) {
+    var resp = api.env.control.ExecCmdById(envName, session, node.id, toJSON([{command: VERSION_CMD}]), true, "root"),
+        out = resp.result == 0 && resp.responses && resp.responses[0] ? String(resp.responses[0].out || "") : "";
+
+    return parseVersion(out) ? out.replace(/\s+/g, "") : String(node.version || "");
+}
+
+function validateNode(node, target) {
+    var currentVersion = getNodeVersion(node),
+        current = parseVersion(currentVersion),
+        strictRolling;
+
+    if (!current) {
+        return block("Unable to determine the database version of node " + node.id +
+            ". Redeploy blocked for safety.");
+    }
+
+    // A downgrade is never allowed, even a patch rollback within the same series: the data directory
+    // may already be upgraded by the newer server. The check needs no upgrade path rules.
+    if (compareVersions(current, target) > 0) {
+        return block("Downgrade from " + currentVersion + " to " + targetTag + " is not supported." +
+            (engine ? " See the " + link("supported upgrade paths", docUrl()) + "." : ""));
+    }
+
+    // Patch upgrades within a single release series are supported by every engine and need no
+    // upgrade path rules, which keeps security patches installable when the rules are unreachable.
     if (compareSeries(current, target) === 0) {
         return {result: 0, allowed: true};
     }
@@ -70,16 +115,10 @@ function validate() {
         return block("Unsupported database engine for upgrade path validation.");
     }
 
-    if (compareVersions(current, target) > 0) {
-        return block("Downgrade from " + currentVersion + " to " + targetTag + " is not supported: a rollback " +
-            "is possible only within the " + series(current) + " series. See the " +
-            link("supported upgrade paths", docUrl()) + ".");
-    }
-
     strictRolling = isStrictRolling(scheme, engine);
 
     if (strictRolling && findSkippedLts(current, target, engine.ltsLadder || [])) {
-        return block(buildUpgradeErrorMessage(current));
+        return block(buildUpgradeErrorMessage(current, currentVersion));
     }
 
     return {result: 0, allowed: true};
@@ -94,6 +133,7 @@ function loadJson(url) {
 
     try {
         conn = new java.net.URL(url).openConnection();
+        conn.setUseCaches(false);
         conn.setConnectTimeout(10000);
         conn.setReadTimeout(10000);
         input = new java.io.BufferedReader(new java.io.InputStreamReader(conn.getInputStream(), "UTF-8"));
@@ -199,13 +239,13 @@ function nextLadderStep(cur, ladder) {
     return null;
 }
 
-function buildUpgradeErrorMessage(current) {
+function buildUpgradeErrorMessage(current, currentVersion) {
     var msg = "Upgrade from " + currentVersion + " to " + targetTag + " is not supported.",
         hint = engine.schemeHints ? engine.schemeHints[scheme] : null,
         nextStep = nextLadderStep(current, engine.ltsLadder || []);
 
     if (hint) msg += " " + hint;
-    if (nextStep) msg += " Upgrade to " + series(nextStep) + " first.";
+    if (nextStep) msg += " Upgrade to the latest " + series(nextStep) + " release first.";
 
     return msg + " See the " + link("supported upgrade paths", docUrl()) + ".";
 }

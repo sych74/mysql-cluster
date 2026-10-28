@@ -14,7 +14,7 @@
     },
     "percona": {
       "nodeTypeMatch": "percona",
-      "docUrl": "https://docs.percona.com/percona-server/9.7/upgrade.html",
+      "docUrl": "https://dev.mysql.com/doc/refman/9.7/en/upgrade-paths.html",
       "upgradeGuideUrl": "https://docs.percona.com/percona-server/9.7/upgrade.html",
       "alwaysStrictRolling": true,
       "schemeHints": {
@@ -37,6 +37,8 @@
         "galera": "A Galera rolling upgrade supports only one LTS step at a time; skipping versions is supported only with a full cluster shutdown."
       },
       "ltsLadder": [
+        "10.2",
+        "10.3",
         "10.4",
         "10.5",
         "10.6",
