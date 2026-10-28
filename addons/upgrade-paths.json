@@ -6,8 +6,6 @@
       "upgradeGuideUrl": "https://dev.mysql.com/doc/refman/9.7/en/upgrading.html",
       "alwaysStrictRolling": true,
       "ltsLadder": [
-        "5.7",
-        "8.0",
         "8.4",
         "9.7"
       ]
@@ -21,8 +19,6 @@
         "xtradb": "A Percona XtraDB Cluster node cannot join a cluster running a different major version, so every LTS series must be applied in turn."
       },
       "ltsLadder": [
-        "5.7",
-        "8.0",
         "8.4",
         "9.7"
       ]
@@ -37,10 +33,6 @@
         "galera": "A Galera rolling upgrade supports only one LTS step at a time; skipping versions is supported only with a full cluster shutdown."
       },
       "ltsLadder": [
-        "10.2",
-        "10.3",
-        "10.4",
-        "10.5",
         "10.6",
         "10.11",
         "11.4",

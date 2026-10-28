@@ -245,7 +245,10 @@ function buildUpgradeErrorMessage(current, currentVersion) {
         nextStep = nextLadderStep(current, engine.ltsLadder || []);
 
     if (hint) msg += " " + hint;
-    if (nextStep) msg += " Upgrade to the latest " + series(nextStep) + " release first.";
+    // The intermediate series may be no longer offered as a tag, so the logical dump is suggested
+    // as the way out that is always available.
+    if (nextStep) msg += " Upgrade to the latest " + series(nextStep) + " release first, or, if that " +
+        "version is not available, migrate the data with a logical dump into a new environment.";
 
     return msg + " See the " + link("supported upgrade paths", docUrl()) + ".";
 }
