@@ -74,8 +74,8 @@ onInstall:
 actions:
 
   # MariaDB does not upgrade the system tables on startup, unlike MySQL 8.0+ and Percona.
-  # mariadb-upgrade compares the server version with mysql_upgrade_info and does nothing
-  # when the system tables are already upgraded, so it is safe to run after every redeploy.
+  # mariadb-upgrade compares the server version with mariadb_upgrade_info (mysql_upgrade_info
+  # before 11.0) and does nothing when no upgrade is needed, so it is safe to run after every redeploy.
   mariadbUpgrade:
     cmd[${this.id}]: |-
       ADMIN=$(command -v mariadb-admin || command -v mysqladmin)
